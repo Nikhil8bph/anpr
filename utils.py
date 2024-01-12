@@ -5,6 +5,7 @@ from wrappodnet.wpodnet.model import WPODNet
 from wrappodnet.wpodnet.stream import ImageStreamer
 from PIL import Image
 import numpy as np
+import base64
 
 def get_car(plate_detection,vehicle_detections_):
     plate_x1, plate_y1, plate_x2 ,plate_y2 ,plate_score ,plate_class_id = plate_detection
@@ -30,3 +31,19 @@ def wrap_transform_plate(source, wpodnet_model, scale = 1.0):
     numpy_image = np.array(warped)
     warped_image = cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
     return warped_image
+
+def convertBase64ToImage(frame_data):
+    # image_data = frame_data.decode('utf-8').replace('data:image/jpeg;base64,', '')
+    image_data = frame_data.split(',')[1]
+    # Decode the base64 string to bytes
+    image_bytes = base64.b64decode(image_data)
+    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    return image
+
+def convertImageToBase64(image):
+    # Encode the image as a base64 string
+    retval, buffer = cv2.imencode('.jpg', image)
+    bytes_image = base64.b64encode(buffer)
+    base64_image = "data:image/jpeg;base64,"+str(bytes_image.decode('utf-8'))
+    return base64_image
